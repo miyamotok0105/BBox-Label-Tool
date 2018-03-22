@@ -132,6 +132,14 @@ class LabelTool():
         # get image list
         self.imageDir = os.path.join(r'./Images', '%03d' %(self.category))
         self.imageList = glob.glob(os.path.join(self.imageDir, '*.JPEG'))
+        self.image_convert(self.imageList, ".JPEG", ".png")
+        self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpg'))
+        self.image_convert(self.imageList, ".jpg", ".png")
+        self.imageList = glob.glob(os.path.join(self.imageDir, '*.jpeg'))
+        self.image_convert(self.imageList, ".jpeg", ".png")
+        self.imageList = []
+        self.imageList = glob.glob(os.path.join(self.imageDir, '*.png'))
+
         if len(self.imageList) == 0:
             print('No .JPEG images found in the specified dir!')
             return
@@ -174,7 +182,6 @@ class LabelTool():
         self.mainPanel.config(width = max(self.tkimg.width(), 400), height = max(self.tkimg.height(), 400))
         self.mainPanel.create_image(0, 0, image = self.tkimg, anchor=NW)
         self.progLabel.config(text = "%04d/%04d" %(self.cur, self.total))
-
         # load labels
         self.clearBBox()
         self.imagename = os.path.split(imagepath)[-1].split('.')[0]
@@ -188,7 +195,6 @@ class LabelTool():
                         bbox_cnt = int(line.strip())
                         continue
                     tmp = [int(t.strip()) for t in line.split()]
-##                    print tmp
                     self.bboxList.append(tuple(tmp))
                     tmpId = self.mainPanel.create_rectangle(tmp[0], tmp[1], \
                                                             tmp[2], tmp[3], \
@@ -197,6 +203,13 @@ class LabelTool():
                     self.bboxIdList.append(tmpId)
                     self.listbox.insert(END, '(%d, %d) -> (%d, %d)' %(tmp[0], tmp[1], tmp[2], tmp[3]))
                     self.listbox.itemconfig(len(self.bboxIdList) - 1, fg = COLORS[(len(self.bboxIdList) - 1) % len(COLORS)])
+
+    def image_convert(self, imageList, from_format, to_format):
+        if len(imageList) != 0:
+            for image_path in imageList:
+                img = Image.open(image_path)
+                os.remove(image_path)
+                img.save(image_path.replace(from_format, to_format))
 
     def saveImage(self):
         with open(self.labelfilename, 'w') as f:
