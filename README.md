@@ -26,6 +26,11 @@ Environment
 - python 2.7
 - python PIL (Pillow)
 
+
+```
+pip install pillow
+```
+
 Run
 -------
 $ python main.py
