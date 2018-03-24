@@ -20,7 +20,7 @@ LabelTool
 
 環境    
 ----------
-- python 2.7
+- python 3.5
 - python PIL (Pillow)
 
 

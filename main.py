@@ -62,6 +62,8 @@ class LabelTool():
         self.entry.grid(row = 0, column = 1, sticky = W+E)
         self.ldBtn = Button(self.frame, text = "読み込み", command = self.loadDir)
         self.ldBtn.grid(row = 0, column = 2, sticky = W+E)
+        self.Convert2YoloBtn = Button(self.frame, text = 'Convert', command = self.convert2Yolo)
+        self.Convert2YoloBtn.grid(row = 0, column = 3)
 
         # main panel for labeling
         self.mainPanel = Canvas(self.frame, cursor='tcross')
@@ -71,7 +73,7 @@ class LabelTool():
         self.parent.bind("s", self.cancelBBox)
         self.parent.bind("a", self.prevImage) # press 'a' to go backforward
         self.parent.bind("d", self.nextImage) # press 'd' to go forward
-        self.mainPanel.grid(row = 1, column = 1, rowspan = 4, sticky = W+N)
+        self.mainPanel.grid(row = 1, column = 1, rowspan = 5, sticky = W+N)
 
         # showing bbox info & delete bbox
         self.lb1 = Label(self.frame, text = 'Bounding boxes:')
@@ -82,6 +84,7 @@ class LabelTool():
         self.btnDel.grid(row = 3, column = 2, sticky = W+E+N)
         self.btnClear = Button(self.frame, text = 'ClearAll', command = self.clearBBox)
         self.btnClear.grid(row = 4, column = 2, sticky = W+E+N)
+        
 
         # control panel for image navigation
         self.ctrPanel = Frame(self.frame)
@@ -289,6 +292,92 @@ class LabelTool():
             self.saveImage()
             self.cur = idx
             self.loadImage()
+
+    def convert2Yolo(self):
+        #we have to make pair foder images and labels.
+        print("convert")
+        pair_images = []
+        pair_labels = []
+        import uuid
+        guid = str(uuid.uuid4())
+        print(self.imageList)
+        for image_path in self.imageList:            
+            #image
+            img = Image.open(image_path)
+            w, h = img.size
+            if os.path.exists((os.path.join("Converted", guid))) == False:
+                os.mkdir(os.path.join("Converted", guid))
+            if os.path.exists((os.path.join("Converted", guid, "images"))) == False:
+                os.mkdir(os.path.join("Converted", guid, "images"))
+            import shutil
+            converted_path = os.path.join("Converted", guid, "images", os.path.basename(image_path))
+            shutil.copyfile(image_path, converted_path)
+
+            #label
+            if os.path.exists((os.path.join("Converted", guid, "labels"))) == False:
+                os.mkdir(os.path.join("Converted", guid, "labels"))
+            label_path = image_path.replace("Images","Labels").replace(".png",".txt")
+            _line = []
+            f = open(label_path,'r')
+            line = f.readline()
+            if len(line) != 0:
+                l = line.replace('\r\n','').replace('\n','').replace('\r','').split(" ")
+                _line.append(l)
+            while line:
+                line = f.readline()
+                if len(line) == 0:
+                    break
+                l = line.replace('\r\n','').replace('\n','').replace('\r','').split(" ")
+                _line.append(l)
+            f.close()
+            for l in _line:
+                b = (float(l[1]), float(l[3]), float(l[2]), float(l[4]))
+                bb = convert((w,h), b)
+                _write_file = open(os.path.join("Converted", guid, "labels", os.path.basename(label_path)), 'a')
+                _write_file.write(str(l[0]) + " " + " ".join([str(a) for a in bb]) + "\n")
+                _write_file.close()
+        zip_directory(os.path.join("Converted", guid))
+        print("converted!!")
+
+#元のbox
+#xmin xmax ymin ymax
+#学習データセット作成
+#xmin ymin xmax ymax
+def convert(size, box):
+    dw = 1./size[0]
+    dh = 1./size[1]
+    x = (box[0] + box[1])/2.0
+    y = (box[2] + box[3])/2.0
+    w = box[1] - box[0]
+    h = box[3] - box[2]
+    x = x*dw
+    w = w*dw
+    y = y*dh
+    h = h*dh
+    return (x,y,w,h)
+
+def zip_directory(path):
+    import zipfile
+    zip_targets = []
+    base = os.path.basename(path)
+    zipfilepath = os.path.abspath('%s.zip' % base)
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            if filepath == zipfilepath:
+                continue
+            arc_name = os.path.relpath(filepath, os.path.dirname(path))
+            print(filepath, arc_name)
+            zip_targets.append((filepath, arc_name))
+        for dirname in dirnames:
+            filepath = os.path.join(dirpath, dirname)
+            arc_name = os.path.relpath(filepath, os.path.dirname(path)) + os.path.sep
+            print(filepath, arc_name)
+            zip_targets.append((filepath, arc_name))
+    zip = zipfile.ZipFile(zipfilepath, 'w')
+    for filepath, name in zip_targets:
+        zip.write(filepath, name)
+    zip.close()
 
 ##    def setImage(self, imagepath = r'test2.png'):
 ##        self.img = Image.open(imagepath)
