@@ -18,6 +18,7 @@ import random
 COLORS = ['red', 'blue', 'yellow', 'pink', 'cyan', 'green', 'black']
 # image sizes for the examples
 SIZE = 256, 256
+CLASS_NUM = 0
 
 class LabelTool():
     def __init__(self, master):
@@ -59,7 +60,7 @@ class LabelTool():
         self.label.grid(row = 0, column = 0, sticky = E)
         self.entry = Entry(self.frame)
         self.entry.grid(row = 0, column = 1, sticky = W+E)
-        self.ldBtn = Button(self.frame, text = "Load", command = self.loadDir)
+        self.ldBtn = Button(self.frame, text = "読み込み", command = self.loadDir)
         self.ldBtn.grid(row = 0, column = 2, sticky = W+E)
 
         # main panel for labeling
@@ -85,9 +86,9 @@ class LabelTool():
         # control panel for image navigation
         self.ctrPanel = Frame(self.frame)
         self.ctrPanel.grid(row = 5, column = 1, columnspan = 2, sticky = W+E)
-        self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
+        self.prevBtn = Button(self.ctrPanel, text='<< 前へ', width = 10, command = self.prevImage)
         self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtn = Button(self.ctrPanel, text='Next >>', width = 10, command = self.nextImage)
+        self.nextBtn = Button(self.ctrPanel, text='次へ >>', width = 10, command = self.nextImage)
         self.nextBtn.pack(side = LEFT, padx = 5, pady = 3)
         self.progLabel = Label(self.ctrPanel, text = "Progress:     /    ")
         self.progLabel.pack(side = LEFT, padx = 5)
@@ -191,17 +192,14 @@ class LabelTool():
         if os.path.exists(self.labelfilename):
             with open(self.labelfilename) as f:
                 for (i, line) in enumerate(f):
-                    if i == 0:
-                        bbox_cnt = int(line.strip())
-                        continue
                     tmp = [int(t.strip()) for t in line.split()]
-                    self.bboxList.append(tuple(tmp))
-                    tmpId = self.mainPanel.create_rectangle(tmp[0], tmp[1], \
-                                                            tmp[2], tmp[3], \
+                    self.bboxList.append(tuple((tmp[1], tmp[2], tmp[3], tmp[4])))
+                    tmpId = self.mainPanel.create_rectangle(tmp[1], tmp[2], \
+                                                            tmp[3], tmp[4], \
                                                             width = 2, \
                                                             outline = COLORS[(len(self.bboxList)-1) % len(COLORS)])
                     self.bboxIdList.append(tmpId)
-                    self.listbox.insert(END, '(%d, %d) -> (%d, %d)' %(tmp[0], tmp[1], tmp[2], tmp[3]))
+                    self.listbox.insert(END, '(%d, %d) -> (%d, %d)' %(tmp[1], tmp[2], tmp[3], tmp[4]))
                     self.listbox.itemconfig(len(self.bboxIdList) - 1, fg = COLORS[(len(self.bboxIdList) - 1) % len(COLORS)])
 
     def image_convert(self, imageList, from_format, to_format):
@@ -213,8 +211,8 @@ class LabelTool():
 
     def saveImage(self):
         with open(self.labelfilename, 'w') as f:
-            f.write('%d\n' %len(self.bboxList))
             for bbox in self.bboxList:
+                f.write(str(CLASS_NUM) + ' ')
                 f.write(' '.join(map(str, bbox)) + '\n')
         print('Image No. %d saved' %(self.cur))
 

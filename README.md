@@ -1,15 +1,12 @@
 BBox-Label-Tool
 ===============
 
-A simple tool for labeling object bounding boxes in images, implemented with Python Tkinter.
-
-**Updates:**
-- 2017.5.21 Check out the ```multi-class``` branch for a multi-class version implemented by @jxgu1016
+画像のバウンディングボックスのラベリングツール。    
 
 **Screenshot:**
 ![Label Tool](./screenshot.png)
 
-Data Organization
+ファイル構成    
 -----------------
 LabelTool  
 |  
@@ -21,7 +18,7 @@ LabelTool
 |  
 |--Examples/  *# direcotry for the example bboxes*  
 
-Environment
+環境    
 ----------
 - python 2.7
 - python PIL (Pillow)
@@ -31,13 +28,17 @@ Environment
 pip install pillow
 ```
 
-Run
+実行    
 -------
 $ python main.py
 
 Usage
 -----
-0. The current tool requires that **the images to be labeled reside in /Images/001, /Images/002, etc. You will need to modify the code if you want to label images elsewhere**.
+/Images/001 配下に画像を /Labels/001 とパス配下にラベルを管理。
+読み込みボタンを押下。
+
+
+The current tool requires that **the images to be labeled reside in /Images/001, /Images/002, etc. You will need to modify the code if you want to label images elsewhere**.
 1. Input a folder number (e.g, 1, 2, 5...), and click `Load`. The images in the folder, along with a few example results will be loaded.
 2. To create a new bounding box, left-click to select the first vertex. Moving the mouse to draw a rectangle, and left-click again to select the second vertex.
   - To cancel the bounding box while drawing, just press `<Esc>`.
