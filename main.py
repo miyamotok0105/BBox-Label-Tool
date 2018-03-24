@@ -24,7 +24,7 @@ class LabelTool():
     def __init__(self, master):
         # set up the main frame
         self.parent = master
-        self.parent.title("LabelTool")
+        self.parent.title("物体検出用ラベリングツール")
         self.frame = Frame(self.parent)
         self.frame.pack(fill=BOTH, expand=1)
         self.parent.resizable(width = FALSE, height = FALSE)
@@ -56,7 +56,7 @@ class LabelTool():
 
         # ----------------- GUI stuff ---------------------
         # dir entry & load
-        self.label = Label(self.frame, text = "Image Dir:")
+        self.label = Label(self.frame, text = "画像パス:")
         self.label.grid(row = 0, column = 0, sticky = E)
         self.entry = Entry(self.frame)
         self.entry.grid(row = 0, column = 1, sticky = W+E)
