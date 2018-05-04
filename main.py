@@ -8,7 +8,7 @@ try:
 except:
     from tkinter import *
     import tkinter as tk # this is for python3
-    import tkinter.messagebox
+    import tkinter.messagebox as tkMessageBox
 from PIL import Image, ImageTk
 import os
 import glob
@@ -127,12 +127,12 @@ class LabelTool():
         if not dbg:
             s = self.entry.get()
             self.parent.focus()
+            if TryParseInt(s) == False:
+                tkMessageBox.showerror("Error!", message = "フォルダ名は数値を使用してください。")
+                return
             self.category = int(s)
         else:
             s = r'D:\workspace\python\labelGUI'
-##        if not os.path.isdir(s):
-##            tkMessageBox.showerror("Error!", message = "The specified dir doesn't exist!")
-##            return
         # get image list
         self.imageDir = os.path.join(r'./Images', '%03d' %(self.category))
         self.imageList = glob.glob(os.path.join(self.imageDir, '*.JPEG'))
@@ -144,24 +144,27 @@ class LabelTool():
         self.imageList = []
         self.imageList = glob.glob(os.path.join(self.imageDir, '*.png'))
 
-        if len(self.imageList) == 0:
-            print('No .JPEG images found in the specified dir!')
-            return
-
         # default to the 1st image in the collection
         self.cur = 1
         self.total = len(self.imageList)
 
          # set up output dir
+        if not os.path.exists(self.imageDir):
+            os.mkdir(self.imageDir)
         self.outDir = os.path.join(r'./Labels', '%03d' %(self.category))
         if not os.path.exists(self.outDir):
             os.mkdir(self.outDir)
-
         # load example bboxes
         self.egDir = os.path.join(r'./Examples', '%03d' %(self.category))
         if not os.path.exists(self.egDir):
-            return
+            os.mkdir(self.egDir)
         filelist = glob.glob(os.path.join(self.egDir, '*.JPEG'))
+
+        if len(self.imageList) == 0:
+            print('No images found in the specified dir!')
+            tkMessageBox.showerror("Error!", message = "画像ファイルを指定のフォルダに格納してください。")
+            return
+
         self.tmp = []
         self.egList = []
         random.shuffle(filelist)
@@ -275,16 +278,18 @@ class LabelTool():
         self.bboxList = []
 
     def prevImage(self, event = None):
-        self.saveImage()
-        if self.cur > 1:
-            self.cur -= 1
-            self.loadImage()
+        if len(self.imageList) != 0:
+            self.saveImage()
+            if self.cur > 1:
+                self.cur -= 1
+                self.loadImage()
 
     def nextImage(self, event = None):
-        self.saveImage()
-        if self.cur < self.total:
-            self.cur += 1
-            self.loadImage()
+        if len(self.imageList) != 0:
+            self.saveImage()
+            if self.cur < self.total:
+                self.cur += 1
+                self.loadImage()
 
     def gotoImage(self):
         idx = int(self.idxEntry.get())
@@ -339,6 +344,13 @@ class LabelTool():
         zip_directory(os.path.join("Converted", guid))
         print("converted!!")
 
+def TryParseInt(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 #元のbox
 #xmin xmax ymin ymax
 #学習データセット作成
@@ -379,12 +391,7 @@ def zip_directory(path):
         zip.write(filepath, name)
     zip.close()
 
-##    def setImage(self, imagepath = r'test2.png'):
-##        self.img = Image.open(imagepath)
-##        self.tkimg = ImageTk.PhotoImage(self.img)
-##        self.mainPanel.config(width = self.tkimg.width())
-##        self.mainPanel.config(height = self.tkimg.height())
-##        self.mainPanel.create_image(0, 0, image = self.tkimg, anchor=NW)
+
 
 if __name__ == '__main__':
     root = Tk()
